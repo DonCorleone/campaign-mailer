@@ -1,5 +1,8 @@
 import configparser
 import csv
+from email.mime.image import MIMEImage
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from postmarker.core import PostmarkClient
 from postmarker.models.emails import EmailManager
 # open a csv file and send mails to the people in the file
@@ -63,7 +66,8 @@ with open('mails.csv', newline='') as csvfile:
                 'From': 'linus@schlosswochen.ch',
                 'To': row[2] + ' ' + row[3] + ' <' + row[1] + '>',
                 'Subject': 'Postmark python csv postmark.emails.send html test token',
-                'HtmlBody': html
+                'HtmlBody': html,
+                'Surname' : row[2],
             }
             # send the email
             # source the token out into a config file
@@ -74,14 +78,46 @@ with open('mails.csv', newline='') as csvfile:
             # Get the token value from the configuration file
             token = config.get('Credentials', 'token')
 
+            # Create a multipart message object
+            msg = MIMEMultipart()
+
+            # Add the text content of the email
+            text = MIMEText("Hello, this is an email with inline images.")
+            msg.attach(text)
+
+            # Open the image files and read their contents
+            with open("image1.jpg", "rb") as f:
+                img1_data = f.read()
+
+
+            # Create image attachment objects
+            img1 = MIMEImage(img1_data)
+
+            # Set the content IDs of the image attachments
+            img1.add_header("Content-ID", "image1")
+
             # Use the token in your application
             print(f"Token: {token}")
 
             postmark = PostmarkClient(server_token=token)
-            postmark.emails.send( # type: ignore
-                From=email['From'],
-                To=email['To'],
-                Subject=email['Subject'],
-                HtmlBody=email['HtmlBody']
+            response = postmark.emails.send_template_batch( # type: ignore
+                {
+                    "From": email['From'],
+                    "To": email['To'],
+                    "TemplateId": 32013601,
+                    "TemplateModel": {
+                         "fizz": email['Surname']
+                    },
+                    "Attachments": [img1]
+                },
+                {
+                    "From": email['From'],
+                    "To": email['To'],
+                    "TemplateId": 32013601,
+                    "TemplateModel": {
+                        "fizz": email['Surname']
+                    },
+                    "Attachments": [img1]
+                }                
             )
-
+            print(f"Response: {response}")
