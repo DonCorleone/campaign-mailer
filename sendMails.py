@@ -15,30 +15,10 @@ from postmarker.models.emails import EmailManager
 #   - third line: names
 #   - fourth line: surnames
 
-# source the token out into a config file
-config = configparser.ConfigParser()
-# Read the configuration file
-config.read('config.ini')
-
-# Get the token value from the configuration file
-token = config.get('Credentials', 'token')
-
-# Open the image files and read their contents
-with open("image1.jpg", "rb") as f:
-    img1_data = f.read()
-   # img_base64 = base64.b64encode(img1_data).decode("utf-8")
-    # Create image attachment objects
-    img1 = MIMEImage(img1_data)
-
-    img1.add_header("Content-Disposition", "inline", filename="image1.jpg")
-    # Set the content IDs of the image attachments
-    img1.add_header("Content-ID", "image1")
-
-    postmark = PostmarkClient(server_token=token)
-
+def extract_emails():
     # collect all the emails in a list
     emailsRaw = []
-        
+
     # load the csv file
     with open('mails.csv', newline='') as csvfile:
         # open a html file and read the html content
@@ -74,21 +54,53 @@ with open("image1.jpg", "rb") as f:
 
                 emailsRaw.append(emailRaw)
 
-    emailList = list()
-    for emailRaw in emailsRaw:
-        # create the email-dictionary
-        emailDict = {
-            "From": emailRaw['From'],
-            "To": emailRaw['To'],
-            "TemplateId": 32013601,
-            "TemplateModel": {
-                "fizz": emailRaw['Surname']
-            },
-            "Attachments": [img1]
-        }
+    # return the list of email dictionaries
+    return emailsRaw
 
-        # add the emailDict to the list of dictionaries
-        emailList.append(emailDict)
+def create_image_attachment(filename):
+    # Open the image file and read its contents
+    with open(filename, "rb") as f:
+        img_data = f.read()
 
-    response = postmark.emails.send_template_batch(*emailList)
-    print(f"Response: {response}")
+    # Create image attachment object
+    img = MIMEImage(img_data)
+
+    img.add_header("Content-Disposition", "inline", filename=filename)
+    # Set the content ID of the image attachment, without extension
+    filenameWoExt = filename.split(".")[0]
+    img.add_header("Content-ID", filenameWoExt)
+
+    return img
+
+# source the token out into a config file
+config = configparser.ConfigParser()
+# Read the configuration file
+config.read('config.ini')
+
+# Get the token value from the configuration file
+token = config.get('Credentials', 'token')
+
+img1 = create_image_attachment("image1.jpg")
+
+postmark = PostmarkClient(server_token=token)
+
+# collect all the emails in a list
+emailsRaw = extract_emails()
+emailList = list()
+for emailRaw in emailsRaw:
+    # create the email-dictionary
+    emailDict = {
+        "From": emailRaw['From'],
+        "To": emailRaw['To'],
+        "TemplateId": 32013601,
+        "TemplateModel": {
+            "fizz": emailRaw['Surname']
+        },
+        "Attachments": [img1]
+    }
+
+    # add the emailDict to the list of dictionaries
+    emailList.append(emailDict)
+
+response = postmark.emails.send_template_batch(*emailList)
+print(f"Response: {response}")
