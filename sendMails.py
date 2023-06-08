@@ -13,24 +13,7 @@ from postmarker.models.emails import EmailManager
 #   - second line: mail addresses
 #   - third line: names
 #   - fourth line: surnames
-# 
 
-# create a new csv file with the following structure:
-#   - first line: header
-#   - second line: mail addresses
-#   - third line: names
-#   - fourth line: surnames
-
-
-# # write the csv file
-# with open('mails.csv', 'w', newline='') as csvfile:
-#     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-#     # write the header
-#     writer.writerow(['header', 'mail address', 'name', 'surname'])
-#     # write the first mail
-#     writer.writerow(['x','linus@wieland.lu','linus','wieland'])
-
-# send the email
 # source the token out into a config file
 config = configparser.ConfigParser()
 # Read the configuration file
@@ -39,17 +22,9 @@ config.read('config.ini')
 # Get the token value from the configuration file
 token = config.get('Credentials', 'token')
 
-# Create a multipart message object
-msg = MIMEMultipart()
-
-# Add the text content of the email
-text = MIMEText("Hello, this is an email with inline images.")
-msg.attach(text)
-
 # Open the image files and read their contents
 with open("image1.jpg", "rb") as f:
     img1_data = f.read()
-
 
 # Create image attachment objects
 img1 = MIMEImage(img1_data)
@@ -57,21 +32,16 @@ img1 = MIMEImage(img1_data)
 # Set the content IDs of the image attachments
 img1.add_header("Content-ID", "image1")
 
-# Use the token in your application
-print(f"Token: {token}")
-
 postmark = PostmarkClient(server_token=token)
 
 # collect all the emails in a list
-emails = []
+emailsRaw = []
     
 # load the csv file
 with open('mails.csv', newline='') as csvfile:
-
     # open a html file and read the html content
     with open('mail.html', 'r') as htmlfile:
         html = htmlfile.read()
-
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
             # skip the first line
@@ -93,47 +63,30 @@ with open('mails.csv', newline='') as csvfile:
             if row[3] == '':
                 continue
 
-
             # create the email
-            email = {
+            emailRaw = {
                 'From': 'linus@schlosswochen.ch',
                 'To': row[2] + ' ' + row[3] + ' <' + row[1] + '>',
-                'Subject': 'Postmark python csv postmark.emails.send html test token',
-                'HtmlBody': html,
                 'Surname' : row[2],
             }
 
-            emails.append(email)
-
-# loop through the list of emails and create a tuple ob objects with this structure:
-#     {
-#         "From": email['From'],
-#         "To": email['To'],
-#         "TemplateId": 32013601,
-#         "TemplateModel": {
-#             "fizz": email['Surname']
-#         },
-#         "Attachments": [img1]
-#     } 
+            emailsRaw.append(emailRaw)
 
 emailList = list()
-for email in emails:
+for emailRaw in emailsRaw:
     # create the email-dictionary
     emailDict = {
-        "From": email['From'],
-        "To": email['To'],
+        "From": emailRaw['From'],
+        "To": emailRaw['To'],
         "TemplateId": 32013601,
         "TemplateModel": {
-            "fizz": email['Surname']
+            "fizz": emailRaw['Surname']
         },
         "Attachments": [img1]
     }
 
     # add the emailDict to the list of dictionaries
     emailList.append(emailDict)
-
-# print(f"Emails: {emailtuple}") 
-
 
 response = postmark.emails.send_template_batch(*emailList)
 print(f"Response: {response}")
