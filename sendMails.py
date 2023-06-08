@@ -22,16 +22,49 @@ from postmarker.models.emails import EmailManager
 #   - fourth line: surnames
 
 
-# write the csv file
-with open('mails.csv', 'w', newline='') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    # write the header
-    writer.writerow(['header', 'mail address', 'name', 'surname'])
-    # write the first mail
-    writer.writerow(['x','linus@wieland.lu','linus','wieland'])
+# # write the csv file
+# with open('mails.csv', 'w', newline='') as csvfile:
+#     writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+#     # write the header
+#     writer.writerow(['header', 'mail address', 'name', 'surname'])
+#     # write the first mail
+#     writer.writerow(['x','linus@wieland.lu','linus','wieland'])
 
-# send the mails
+# send the email
+# source the token out into a config file
+config = configparser.ConfigParser()
+# Read the configuration file
+config.read('config.ini')
 
+# Get the token value from the configuration file
+token = config.get('Credentials', 'token')
+
+# Create a multipart message object
+msg = MIMEMultipart()
+
+# Add the text content of the email
+text = MIMEText("Hello, this is an email with inline images.")
+msg.attach(text)
+
+# Open the image files and read their contents
+with open("image1.jpg", "rb") as f:
+    img1_data = f.read()
+
+
+# Create image attachment objects
+img1 = MIMEImage(img1_data)
+
+# Set the content IDs of the image attachments
+img1.add_header("Content-ID", "image1")
+
+# Use the token in your application
+print(f"Token: {token}")
+
+postmark = PostmarkClient(server_token=token)
+
+# collect all the emails in a list
+emails = []
+    
 # load the csv file
 with open('mails.csv', newline='') as csvfile:
 
@@ -69,55 +102,38 @@ with open('mails.csv', newline='') as csvfile:
                 'HtmlBody': html,
                 'Surname' : row[2],
             }
-            # send the email
-            # source the token out into a config file
-            config = configparser.ConfigParser()
-            # Read the configuration file
-            config.read('config.ini')
 
-            # Get the token value from the configuration file
-            token = config.get('Credentials', 'token')
+            emails.append(email)
 
-            # Create a multipart message object
-            msg = MIMEMultipart()
+# loop through the list of emails and create a tuple ob objects with this structure:
+#     {
+#         "From": email['From'],
+#         "To": email['To'],
+#         "TemplateId": 32013601,
+#         "TemplateModel": {
+#             "fizz": email['Surname']
+#         },
+#         "Attachments": [img1]
+#     } 
 
-            # Add the text content of the email
-            text = MIMEText("Hello, this is an email with inline images.")
-            msg.attach(text)
+emailList = list()
+for email in emails:
+    # create the email-dictionary
+    emailDict = {
+        "From": email['From'],
+        "To": email['To'],
+        "TemplateId": 32013601,
+        "TemplateModel": {
+            "fizz": email['Surname']
+        },
+        "Attachments": [img1]
+    }
 
-            # Open the image files and read their contents
-            with open("image1.jpg", "rb") as f:
-                img1_data = f.read()
+    # add the emailDict to the list of dictionaries
+    emailList.append(emailDict)
+
+# print(f"Emails: {emailtuple}") 
 
 
-            # Create image attachment objects
-            img1 = MIMEImage(img1_data)
-
-            # Set the content IDs of the image attachments
-            img1.add_header("Content-ID", "image1")
-
-            # Use the token in your application
-            print(f"Token: {token}")
-
-            postmark = PostmarkClient(server_token=token)
-            response = postmark.emails.send_template_batch( # type: ignore
-                {
-                    "From": email['From'],
-                    "To": email['To'],
-                    "TemplateId": 32013601,
-                    "TemplateModel": {
-                         "fizz": email['Surname']
-                    },
-                    "Attachments": [img1]
-                },
-                {
-                    "From": email['From'],
-                    "To": email['To'],
-                    "TemplateId": 32013601,
-                    "TemplateModel": {
-                        "fizz": email['Surname']
-                    },
-                    "Attachments": [img1]
-                }                
-            )
-            print(f"Response: {response}")
+response = postmark.emails.send_template_batch(*emailList)
+print(f"Response: {response}")
