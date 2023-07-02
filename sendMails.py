@@ -1,6 +1,7 @@
-import base64
 import configparser
 import csv
+import datetime
+from datetime import datetime
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -19,8 +20,8 @@ def extract_emails():
     # collect all the emails in a list
     emailsRaw = []
 
-    # load the csv file
-    with open('mails.csv', newline='') as csvfile:
+    # load the csv file in relative subfolder "mailing_lists"
+    with open('mailing_lists/week-77.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
             # skip the first line
@@ -30,23 +31,29 @@ def extract_emails():
             if row[0] == '':
                 continue
             # skip lines that do not have the right length
-            if len(row) != 4:
+            if len(row) != 9:
                 continue
             # skip lines that do not have a valid mail address
-            if '@' not in row[1]:
+            if '@' not in row[4]:
                 continue
             # skip lines that do not have a valid name
-            if row[2] == '':
+            if row[5] == '':
                 continue
             # skip lines that do not have a valid surname
-            if row[3] == '':
+            if row[6] == '':
                 continue
 
             # create the email
             emailRaw = {
-                'From': 'linus@schlosswochen.ch',
-                'To': row[2] + ' ' + row[3] + ' <' + row[1] + '>',
+                'From': 'anmeldungen@schlosswochen.ch',
+                'To': row[5] + ' ' + row[6] + ' <' + row[4] + '>',
+                'ToRaw': row[4],
+                'Lastname' : row[3],
                 'Surname' : row[2],
+                'Week': row[1],
+                'Year': row[2],
+                'DateFrom': row[7],
+                'DateTo': row[8], 
             }
 
             emailsRaw.append(emailRaw)
@@ -76,9 +83,17 @@ def create_email_list(emailsRaw, attachments):
         emailDict = {
             "From": emailRaw['From'],
             "To": emailRaw['To'],
-            "TemplateId": 32013601,
+            "TemplateId": 32327162,
             "TemplateModel": {
-                "fizz": emailRaw['Surname']
+                "From": emailRaw['From'],
+                "To": emailRaw['To'],
+                "ToRaw": emailRaw['ToRaw'],
+                "Surname": emailRaw['Surname'],
+                "Lastname": emailRaw['Lastname'],
+                "Year": emailRaw['Year'],
+                "Week": emailRaw['Week'],
+                "DateFrom": format_date(emailRaw['DateFrom']),
+                "DateTo": format_date(emailRaw['DateTo']),
             },
             "Attachments": attachments
         }
@@ -86,6 +101,13 @@ def create_email_list(emailsRaw, attachments):
         # add the emailDict to the list of dictionaries
         emailList.append(emailDict)
     return emailList
+
+def format_date(date):
+    # convert date from format 2023-07-10T07:00:00.000Z to 10.07.2023
+    date = date.split("T")[0]
+    date = datetime.strptime(date, "%Y-%m-%d")
+    
+    return date.strftime("%d.%m.%Y")
 
 # collect all the emails in a list
 emailsRaw = extract_emails()

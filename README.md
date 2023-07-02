@@ -9,3 +9,6 @@ python postmark mailer
 
 ## for PostmarkAPI
 [doc](https://postmarkapp.com/developer)
+
+### Template Syntax:
+[Mustachio](https://postmarkapp.com/support/article/1077-template-syntax)
