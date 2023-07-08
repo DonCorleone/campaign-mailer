@@ -21,39 +21,110 @@ def extract_emails():
     emailsRaw = []
 
     # load the csv file in relative subfolder "mailing_lists"
-    with open('mailing_lists/week-77.csv', newline='') as csvfile:
+    with open('mailing_lists/recipients.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
             # skip the first line
             if reader.line_num == 1:
+                # header-row:
+                # "_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].firstNameParticipant","children[1].lastNameParticipant"
+                # exit if header is not correct
+                if row[0] != '_id':
+                    print("Error: header is not correct")
+                    exit
+                if row[1] != 'state':
+                    print("Error: header is not correct")
+                    exit
+                if row[2] != 'year':
+                    print("Error: header is not correct")
+                    exit
+                if row[3] != 'week':
+                    print("Error: header is not correct")
+                    exit
+                if row[4] != 'lastName':
+                    print("Error: header is not correct")
+                    exit
+                if row[5] != 'firstName':
+                    print("Error: header is not correct")
+                    exit
+                
+                if row[6] != 'email':
+                    print("Error: header is not correct")
+                    exit
+                if row[7] != 'date_from':
+                    print("Error: header is not correct")
+                    exit
+                if row[8] != 'date_to':
+                    print("Error: header is not correct")
+                    exit
+                
+                if row[9] != 'children[0].firstNameParticipant':
+                    print("Error: header is not correct")
+                    exit
+                if row[10] != 'children[0].lastNameParticipant':
+                    print("Error: header is not correct")
+                    exit
+
+                # continue with the next line
                 continue
+                
             # skip empty lines
             if row[0] == '':
                 continue
-            # skip lines that do not have the right length
-            if len(row) != 9:
-                continue
             # skip lines that do not have a valid mail address
-            if '@' not in row[4]:
+            if '@' not in row[6]:
                 continue
             # skip lines that do not have a valid name
             if row[5] == '':
                 continue
             # skip lines that do not have a valid surname
-            if row[6] == '':
+            if row[4] == '':
                 continue
 
             # create the email
+            # header-row:
+            # "_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].firstNameParticipant","children[1].lastNameParticipant"
+ 
+            # initialize an array of string
+            children = []
+            children.append(
+                row[9] + ' ' + row[10]
+            )
+
+            # append row [11] if not empty to children
+            if row[11] != '':
+                children.append(
+                    row[11] + ' ' + row[12]
+                )
+            
+            # append row [13] if existing AND if not empty to children
+            if len(row) > 13:
+                if row[13] != '':
+                    children.append(
+                        row[13] + ' ' + row[14]
+                    )
+
+            # append row [15] if existing AND if not empty to children
+            if len(row) > 15:
+                if row[15] != '':
+                    children.append(
+                        row[15] + ' ' + row[16]
+                    )      
+
+            # create string of children, comma separated, childrens containment
+            children = ', '.join(children)
+
             emailRaw = {
                 'From': 'anmeldungen@schlosswochen.ch',
-                'To': row[5] + ' ' + row[6] + ' <' + row[4] + '>',
-                'ToRaw': row[4],
-                'Lastname' : row[3],
-                'Surname' : row[2],
-                'Week': row[1],
+                'To': row[5] + ' ' + row[4] + ' <' + row[6] + '>',
+                'ToRaw': row[6],
+                'Lastname' : row[4],
+                'Surname' : row[5],
+                'Week': row[3],
                 'Year': row[2],
                 'DateFrom': row[7],
-                'DateTo': row[8], 
+                'DateTo': row[8],
+                'Children': children
             }
 
             emailsRaw.append(emailRaw)
@@ -94,6 +165,7 @@ def create_email_list(emailsRaw, attachments):
                 "Week": emailRaw['Week'],
                 "DateFrom": format_date(emailRaw['DateFrom']),
                 "DateTo": format_date(emailRaw['DateTo']),
+                "Children": emailRaw['Children'],
             },
             "Attachments": attachments
         }
