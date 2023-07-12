@@ -28,43 +28,40 @@ def extract_emails():
             if reader.line_num == 1:
                 # header-row:
                 # "_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].firstNameParticipant","children[1].lastNameParticipant"
-                # exit if header is not correct
+                # if header is not correct: write to console which header not was correct and exit
                 if row[0] != '_id':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: _id')
+                    exit()
                 if row[1] != 'state':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: state')
+                    exit()
                 if row[2] != 'year':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: year')
+                    exit()
                 if row[3] != 'week':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: week')
+                    exit()
                 if row[4] != 'lastName':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: lastName')
+                    exit()
                 if row[5] != 'firstName':
-                    print("Error: header is not correct")
-                    exit
-                
+                    print('Header not correct: firstName')
+                    exit()
                 if row[6] != 'email':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: email')
+                    exit()
                 if row[7] != 'date_from':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: date_from')
+                    exit()
                 if row[8] != 'date_to':
-                    print("Error: header is not correct")
-                    exit
-                
+                    print('Header not correct: date_to')
+                    exit()
                 if row[9] != 'children[0].firstNameParticipant':
-                    print("Error: header is not correct")
-                    exit
+                    print('Header not correct: children[0].firstNameParticipant')
+                    exit()
                 if row[10] != 'children[0].lastNameParticipant':
-                    print("Error: header is not correct")
-                    exit
-
+                    print('Header not correct: children[0].lastNameParticipant')
+                    exit()
                 # continue with the next line
                 continue
                 
@@ -115,6 +112,7 @@ def extract_emails():
             children = ', '.join(children)
 
             emailRaw = {
+                'TemplateId': row[0],
                 'From': 'anmeldungen@schlosswochen.ch',
                 'To': row[5] + ' ' + row[4] + ' <' + row[6] + '>',
                 'ToRaw': row[6],
@@ -154,7 +152,7 @@ def create_email_list(emailsRaw, attachments):
         emailDict = {
             "From": emailRaw['From'],
             "To": emailRaw['To'],
-            "TemplateId": 32327162,
+            "TemplateId": emailRaw['TemplateId'],
             "TemplateModel": {
                 "From": emailRaw['From'],
                 "To": emailRaw['To'],
