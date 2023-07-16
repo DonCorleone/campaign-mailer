@@ -193,5 +193,12 @@ config.read('config.ini')
 token = config.get('Credentials', 'token')
 postmark = PostmarkClient(server_token=token)
 
+# ask the user if he wants to send the emails
+print(f"Send {len(emailList)} emails? (y/n)")
+answer = input()
+if answer != 'y':
+    print("Aborted")
+    exit()
+
 response = postmark.emails.send_template_batch(*emailList)
 print(f"Response: {response}")
