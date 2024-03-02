@@ -60,6 +60,7 @@ def extract_emails():
                 'Lastname' : row[4],
                 'Surname' : row[5],
                 'Year': row[2],
+                'Subject': row[1]
             }
 
             emailsRaw.append(emailRaw)
@@ -105,6 +106,7 @@ def create_email_list(emailsRaw, attachments):
                 "Surname": emailRaw['Surname'],
                 "Lastname": emailRaw['Lastname'],
                 "Year": emailRaw['Year'],
+                "Subject": emailRaw['Subject'],
             },
             "Attachments": attachments
         }
