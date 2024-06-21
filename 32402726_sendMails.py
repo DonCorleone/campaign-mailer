@@ -7,60 +7,56 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from postmarker.core import PostmarkClient
 from postmarker.models.emails import EmailManager
-# open a csv file and send mails to the people in the file
-# the csv file has to be in the same directory as this script
-# the csv file has to be named "mails.csv"
-# the csv file has to have the following structure:
-#   - first line: header
-#   - second line: mail addresses
-#   - third line: names
-#   - fourth line: surnames
+
+# crate columnindexes for the csv file
+columnIndexes = {
+    'TemplateId': 0,
+    'State': 99,
+    'Year': 1,
+    'Week': 2,
+    'LastName': 3,
+    'FirstName': 4,
+    'Email': 5,
+    'DateFrom': 6,
+    'DateTo': 7,
+    'Children': 99,
+}
 
 def extract_emails():
     # collect all the emails in a list
     emailsRaw = []
 
     # load the csv file in relative subfolder "mailing_lists"
-    with open('mailing_lists/recipients.csv', newline='') as csvfile:
+    with open('mailing_lists/32402726_full.csv', newline='') as csvfile:
         reader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in reader:
             # skip the first line
             if reader.line_num == 1:
-                # header-row:
-                # "_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].firstNameParticipant","children[1].lastNameParticipant"
-                # if header is not correct: write to console which header not was correct and exit
-                if row[0] != '_id':
-                    print('Header not correct: _id')
+
+                # read cell by cell and check if the header is correct
+                if row[columnIndexes['TemplateId']] != '_id':
+                    print('Header not correct: TemplateId')
                     exit()
-                if row[1] != 'state':
-                    print('Header not correct: state')
-                    exit()
-                if row[2] != 'year':
+                if row[columnIndexes['Year']] != 'year':
                     print('Header not correct: year')
                     exit()
-                if row[3] != 'week':
+                if row[columnIndexes['Week']] != 'week':
                     print('Header not correct: week')
                     exit()
-                if row[4] != 'lastName':
+                if row[columnIndexes['LastName']] != 'lastName':
                     print('Header not correct: lastName')
                     exit()
-                if row[5] != 'firstName':
+                if row[columnIndexes['FirstName']] != 'firstName':
                     print('Header not correct: firstName')
                     exit()
-                if row[6] != 'email':
+                if row[columnIndexes['Email']] != 'email':
                     print('Header not correct: email')
                     exit()
-                if row[7] != 'date_from':
+                if row[columnIndexes['DateFrom']] != 'date_from':
                     print('Header not correct: date_from')
                     exit()
-                if row[8] != 'date_to':
+                if row[columnIndexes['DateTo']] != 'date_to':
                     print('Header not correct: date_to')
-                    exit()
-                if row[9] != 'children[0].firstNameParticipant':
-                    print('Header not correct: children[0].firstNameParticipant')
-                    exit()
-                if row[10] != 'children[0].lastNameParticipant':
-                    print('Header not correct: children[0].lastNameParticipant')
                     exit()
                 # continue with the next line
                 continue
@@ -69,60 +65,18 @@ def extract_emails():
             if row[0] == '':
                 continue
             # skip lines that do not have a valid mail address
-            if '@' not in row[6]:
+            if '@' not in row[columnIndexes['Email']]:
                 continue
-            # skip lines that do not have a valid name
-            if row[5] == '':
-                continue
-            # skip lines that do not have a valid surname
-            if row[4] == '':
-                continue
-
-            # create the email
-            # header-row:
-            # "_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].firstNameParticipant","children[1].lastNameParticipant"
- 
-            # initialize an array of string
-            children = []
-            children.append(
-                row[9] + ' ' + row[10]
-            )
-
-            # append row [11] if not empty to children
-            if row[11] != '':
-                children.append(
-                    row[11] + ' ' + row[12]
-                )
-            
-            # append row [13] if existing AND if not empty to children
-            if len(row) > 13:
-                if row[13] != '':
-                    children.append(
-                        row[13] + ' ' + row[14]
-                    )
-
-            # append row [15] if existing AND if not empty to children
-            if len(row) > 15:
-                if row[15] != '':
-                    children.append(
-                        row[15] + ' ' + row[16]
-                    )      
-
-            # create string of children, comma separated, childrens containment
-            children = ', '.join(children)
 
             emailRaw = {
                 'TemplateId': row[0],
                 'From': 'anmeldungen@schlosswochen.ch',
-                'To': row[5] + ' ' + row[4] + ' <' + row[6] + '>',
-                'ToRaw': row[6],
-                'Lastname' : row[4],
-                'Surname' : row[5],
-                'Week': row[3],
-                'Year': row[2],
-                'DateFrom': row[7],
-                'DateTo': row[8],
-                'Children': children
+                'To': row[columnIndexes['FirstName']] + ' ' + row[columnIndexes['LastName']] + ' <' + row[columnIndexes['Email']] + '>',
+                'ToRaw': row[columnIndexes['Email']],
+                'Week': row[columnIndexes['Week']],
+                'Year': row[columnIndexes['Year']],
+                'DateFrom': row[columnIndexes['DateFrom']],
+                'DateTo': row[columnIndexes['DateTo']],
             }
 
             emailsRaw.append(emailRaw)
@@ -157,13 +111,10 @@ def create_email_list(emailsRaw, attachments):
                 "From": emailRaw['From'],
                 "To": emailRaw['To'],
                 "ToRaw": emailRaw['ToRaw'],
-                "Surname": emailRaw['Surname'],
-                "Lastname": emailRaw['Lastname'],
                 "Year": emailRaw['Year'],
                 "Week": emailRaw['Week'],
                 "DateFrom": format_date(emailRaw['DateFrom']),
                 "DateTo": format_date(emailRaw['DateTo']),
-                "Children": emailRaw['Children'],
             },
             "Attachments": attachments
         }
