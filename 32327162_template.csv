@@ -1,0 +1,2 @@
+"_id","state","year","week","lastName","firstName","email","date_from","date_to","children[0].firstNameParticipant","children[0].lastNameParticipant","children[1].lastNameParticipant","children[1].firstNameParticipant","children[2].firstNameParticipant","children[2].lastNameParticipant"
+"32327162","definitive","2024","1","Doe","Susi","x@y.de","2024-07-08T09:00:00.000Z","2024-07-12T15:00:00.000Z","Fritz","Doe","Hans","Doe","Fridolin","Doe"
