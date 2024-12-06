@@ -25,19 +25,22 @@ def extract_emails():
                 if row[1] != 'title':
                     print('Header not correct: title')
                     exit()
-                if row[2] != 'year':
+                if row[2] != 'subject':
+                    print('Header not correct: subject')
+                    exit()
+                if row[3] != 'year':
                     print('Header not correct: year')
                     exit()
-                if row[3] != 'eventId':
+                if row[4] != 'eventId':
                     print('Header not correct: eventId')
                     exit()
-                if row[4] != 'lastName':
+                if row[5] != 'lastName':
                     print('Header not correct: lastName')
                     exit()
-                if row[5] != 'firstName':
+                if row[6] != 'firstName':
                     print('Header not correct: firstName')
                     exit()
-                if row[6] != 'email':
+                if row[7] != 'email':
                     print('Header not correct: email')
                     exit()
                 # continue with the next line
@@ -47,17 +50,17 @@ def extract_emails():
             if row[0] == '':
                 continue
             # skip lines that do not have a valid mail address
-            if '@' not in row[6]:
+            if '@' not in row[7]:
                 continue
 
             emailRaw = {
                 'TemplateId': row[0],
                 'MessageStream': 'broadcast',
                 'From': 'noreplay@petruschka.ch',
-                'To': row[5] + ' ' + row[4] + ' <' + row[6] + '>',
-                'ToRaw': row[6],
-                'Lastname' : row[4],
-                'Surname' : row[5],
+                'To': row[4] + ' ' + row[5] + ' <' + row[7] + '>',
+                'ToRaw': row[7],
+                'Lastname' : row[5],
+                'Surname' : row[6],
                 'EventId': row[3],
                 'Year': row[2],
                 'Title': row[1],
