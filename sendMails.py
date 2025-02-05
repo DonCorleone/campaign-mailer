@@ -64,6 +64,9 @@ def extract_emails():
                 'EventId': row[3],
                 'Year': row[2],
                 'Title': row[1],
+                'Bestellnr': row[8],
+                'Betrag': row[9],
+                'Methode': row[10],
             }
 
             emailsRaw.append(emailRaw)
@@ -103,6 +106,9 @@ def create_email_list(emailsRaw):
                 "Lastname": emailRaw['Lastname'],
                 "Year": emailRaw['Year'],
                 "Title": emailRaw['Title'],
+                "Betrag": emailRaw['Betrag'],
+                "Bestellnr": emailRaw['Bestellnr'],
+                "Methode": emailRaw['Methode'],
             }
         }
 
