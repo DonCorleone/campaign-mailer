@@ -7,7 +7,7 @@ with open('mailing_lists/recipients.csv', 'r') as template_file:
     template_row = next(reader)
 
 # Read the values from mailing_lists/recipients_export.csv
-with open('mailing_lists/recipients_export.csv', 'r') as input_file:
+with open('mailing_lists/stamm_schlosswochen.csv', 'r') as input_file:
     reader = csv.reader(input_file)
     next(reader)  # Skip the header row
     values = [[template_row[0], template_row[1], template_row[2], template_row[3]] + [row[4], row[5], row[6]] for row in reader]
